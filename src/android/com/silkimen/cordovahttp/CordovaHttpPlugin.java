@@ -155,27 +155,21 @@ public class CordovaHttpPlugin extends CordovaPlugin {
 
   private boolean setSSLCertMode(final JSONArray args, final CallbackContext callbackContext) {
     try {
-      switch (args.getString(0)) {
-      case "legacy":
+      if ("legacy".equals(args.getString(0))) {
         this.customHostnameVerifier = null;
         this.customSSLSocketFactory = null;
-        break;
-      case "nocheck":
+      } else if ("nocheck".equals(args.getString(0))) {
         this.customHostnameVerifier = this.hostnameVerifierFactory.getNoOpVerifier();
         this.customSSLSocketFactory = this.createSocketFactory(this.trustManagersFactory.getNoopTrustManagers());
-        break;
-      case "pinned":
+      } else if ("pinned".equals(action)) {
         this.customHostnameVerifier = null;
         this.customSSLSocketFactory = this.createSocketFactory(
-            this.trustManagersFactory.getPinnedTrustManagers(this.getCertsFromBundle("www/certificates")));
-        break;
-      default:
+        this.trustManagersFactory.getPinnedTrustManagers(this.getCertsFromBundle("www/certificates")));
+      } else {
         this.customHostnameVerifier = null;
         this.customSSLSocketFactory = this.createSocketFactory(
-            this.trustManagersFactory.getPinnedTrustManagers(this.getCertsFromKeyStore("AndroidCAStore")));
-        break;
+        this.trustManagersFactory.getPinnedTrustManagers(this.getCertsFromKeyStore("AndroidCAStore")));
       }
-
       callbackContext.success();
     } catch (Exception e) {
       Log.e(TAG, "An error occured while configuring SSL cert mode", e);
