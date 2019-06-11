@@ -141,12 +141,13 @@ public class CordovaHttpPlugin extends CordovaPlugin {
 
   private boolean downloadFile(final JSONArray args, final CallbackContext callbackContext) throws JSONException {
     String url = args.getString(0);
-    JSONObject headers = args.getJSONObject(1);
-    String filePath = args.getString(2);
-    int timeout = args.getInt(3) * 1000;
+    JSONObject params = args.getJSONObject(1);
+    JSONObject headers = args.getJSONObject(2);
+    String filePath = args.getString(3);
+    int timeout = args.getInt(4) * 1000;
 
-    CordovaHttpDownload download = new CordovaHttpDownload(url, headers, filePath, timeout, this.followRedirects,
-        this.tlsConfiguration, callbackContext);
+    CordovaHttpDownload download = new CordovaHttpDownload(url, params, headers, filePath, timeout,
+        this.followRedirects, this.customSSLSocketFactory, this.customHostnameVerifier, callbackContext);
 
     cordova.getThreadPool().execute(download);
 
