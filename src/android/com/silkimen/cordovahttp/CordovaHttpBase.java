@@ -161,7 +161,7 @@ abstract class CordovaHttpBase implements Runnable {
       return;
     }
 
-    switch (this.serializer) {
+    /*switch (this.serializer) {
     case "json":
       request.send(this.data.toString());
       break;
@@ -171,7 +171,7 @@ abstract class CordovaHttpBase implements Runnable {
     case "urlencoded":
       request.form(JsonUtils.getObjectMap((JSONObject) this.data));
       break;
-    }
+    }*/
   }
 
   protected void processResponse(HttpRequest request, CordovaHttpResponse response) throws Exception {
