@@ -142,16 +142,19 @@ abstract class CordovaHttpBase implements Runnable {
     request.headers(JsonUtils.getStringMap(this.headers));
   }
 
-  protected void setContentType(HttpRequest request) {
+  protected void sendBody(HttpRequest request) throws Exception {
+    if (this.data == null) {
+      return;
+    }
     switch (this.serializer) {
     case "json":
-      request.contentType("application/json", "UTF-8");
+      request.send(this.data.toString());
       break;
     case "utf8":
-      request.contentType("text/plain", "UTF-8");
+      request.send(((JSONObject) this.data).getString("text"));
       break;
     case "urlencoded":
-      // intentionally left blank, because content type is set in HttpRequest.form()
+      request.form(JsonUtils.getObjectMap((JSONObject) this.data));
       break;
     }
   }
