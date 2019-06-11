@@ -157,16 +157,12 @@ abstract class CordovaHttpBase implements Runnable {
       return;
     }
 
-    switch (this.serializer) {
-    case "json":
+     if ("json".equals(this.serializer)) {
       request.send(this.data.toString());
-      break;
-    case "utf8":
+    } else if ("utf8".equals(this.serializer)) {
       request.send(((JSONObject) this.data).getString("text"));
-      break;
-    case "urlencoded":
+    } else if ("urlencoded".equals(this.serializer)) {
       request.form(JsonUtils.getObjectMap((JSONObject) this.data));
-      break;
     }
   }
 
