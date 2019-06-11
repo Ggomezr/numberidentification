@@ -137,12 +137,12 @@ abstract class CordovaHttpBase implements Runnable {
     }
 
     // setup content type before applying headers, so user can override it
-    this.setContentType(request);
+    //this.setContentType(request);
 
     request.headers(JsonUtils.getStringMap(this.headers));
   }
 
-  protected void setContentType(HttpRequest request) {
+  /*protected void setContentType(HttpRequest request) {
     switch (this.serializer) {
     case "json":
       request.contentType("application/json", "UTF-8");
@@ -154,7 +154,7 @@ abstract class CordovaHttpBase implements Runnable {
       // intentionally left blank, because content type is set in HttpRequest.form()
       break;
     }
-  }
+  }*/
 
   protected void sendBody(HttpRequest request) throws Exception {
     if (this.data == null) {
