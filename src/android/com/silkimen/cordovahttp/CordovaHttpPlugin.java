@@ -161,7 +161,7 @@ public class CordovaHttpPlugin extends CordovaPlugin {
       } else if ("nocheck".equals(args.getString(0))) {
         this.customHostnameVerifier = this.hostnameVerifierFactory.getNoOpVerifier();
         this.customSSLSocketFactory = this.createSocketFactory(this.trustManagersFactory.getNoopTrustManagers());
-      } else if ("pinned".equals(action)) {
+      } else if ("pinned".equals(args.getString(0))) {
         this.customHostnameVerifier = null;
         this.customSSLSocketFactory = this.createSocketFactory(
         this.trustManagersFactory.getPinnedTrustManagers(this.getCertsFromBundle("www/certificates")));
