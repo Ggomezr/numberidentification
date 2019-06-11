@@ -80,10 +80,10 @@ public class CordovaHttpPlugin extends CordovaPlugin {
       return this.uploadFile(args, callbackContext);
     } else if ("downloadFile".equals(action)) {
       return this.downloadFile(args, callbackContext);
-    } else if ("setServerTrustMode".equals(action)) {
-      return this.setServerTrustMode(args, callbackContext);
-    } else if ("setClientAuthMode".equals(action)) {
-      return this.setClientAuthMode(args, callbackContext);
+    } else if ("setSSLCertMode".equals(action)) {
+      return this.setSSLCertMode(args, callbackContext);
+    } else if ("disableRedirect".equals(action)) {
+      return this.disableRedirect(args, callbackContext);
     } else {
       return false;
     }
