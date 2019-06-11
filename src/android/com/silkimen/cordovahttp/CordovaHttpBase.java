@@ -1,6 +1,5 @@
 package com.silkimen.cordovahttp;
 
-import java.io.IOException;
 import java.io.ByteArrayOutputStream;
 
 import java.net.SocketTimeoutException;
@@ -8,14 +7,15 @@ import java.net.UnknownHostException;
 
 import java.nio.ByteBuffer;
 
-import javax.net.ssl.SSLException;
+import javax.net.ssl.HostnameVerifier;
+import javax.net.ssl.SSLHandshakeException;
+import javax.net.ssl.SSLSocketFactory;
 
 import com.silkimen.http.HttpBodyDecoder;
 import com.silkimen.http.HttpRequest;
 import com.silkimen.http.HttpRequest.HttpRequestException;
 import com.silkimen.http.JsonUtils;
 import com.silkimen.http.OkConnectionFactory;
-import com.silkimen.http.TLSConfiguration;
 
 import org.apache.cordova.CallbackContext;
 
@@ -31,14 +31,17 @@ abstract class CordovaHttpBase implements Runnable {
   protected String url;
   protected String serializer = "none";
   protected Object data;
+  protected JSONObject params;
   protected JSONObject headers;
   protected int timeout;
   protected boolean followRedirects;
-  protected TLSConfiguration tlsConfiguration;
+  protected SSLSocketFactory customSSLSocketFactory;
+  protected HostnameVerifier customHostnameVerifier;
   protected CallbackContext callbackContext;
 
   public CordovaHttpBase(String method, String url, String serializer, Object data, JSONObject headers, int timeout,
-      boolean followRedirects, TLSConfiguration tlsConfiguration, CallbackContext callbackContext) {
+      boolean followRedirects, SSLSocketFactory customSSLSocketFactory, HostnameVerifier customHostnameVerifier,
+      CallbackContext callbackContext) {
 
     this.method = method;
     this.url = url;
@@ -47,19 +50,23 @@ abstract class CordovaHttpBase implements Runnable {
     this.headers = headers;
     this.timeout = timeout;
     this.followRedirects = followRedirects;
-    this.tlsConfiguration = tlsConfiguration;
+    this.customSSLSocketFactory = customSSLSocketFactory;
+    this.customHostnameVerifier = customHostnameVerifier;
     this.callbackContext = callbackContext;
   }
 
-  public CordovaHttpBase(String method, String url, JSONObject headers, int timeout, boolean followRedirects,
-      TLSConfiguration tlsConfiguration, CallbackContext callbackContext) {
+  public CordovaHttpBase(String method, String url, JSONObject params, JSONObject headers, int timeout,
+      boolean followRedirects, SSLSocketFactory customSSLSocketFactory, HostnameVerifier customHostnameVerifier,
+      CallbackContext callbackContext) {
 
     this.method = method;
     this.url = url;
+    this.params = params;
     this.headers = headers;
     this.timeout = timeout;
     this.followRedirects = followRedirects;
-    this.tlsConfiguration = tlsConfiguration;
+    this.customSSLSocketFactory = customSSLSocketFactory;
+    this.customHostnameVerifier = customHostnameVerifier;
     this.callbackContext = callbackContext;
   }
 
@@ -73,10 +80,10 @@ abstract class CordovaHttpBase implements Runnable {
       this.sendBody(request);
       this.processResponse(request, response);
     } catch (HttpRequestException e) {
-      if (e.getCause() instanceof SSLException) {
+      if (e.getCause() instanceof SSLHandshakeException) {
         response.setStatus(-2);
-        response.setErrorMessage("TLS connection could not be established: " + e.getMessage());
-        Log.w(TAG, "TLS connection could not be established", e);
+        response.setErrorMessage("SSL handshake failed: " + e.getMessage());
+        Log.w(TAG, "SSL handshake failed", e);
       } else if (e.getCause() instanceof UnknownHostException) {
         response.setStatus(-3);
         response.setErrorMessage("Host could not be resolved: " + e.getMessage());
@@ -108,21 +115,26 @@ abstract class CordovaHttpBase implements Runnable {
   }
 
   protected HttpRequest createRequest() throws JSONException {
-    return new HttpRequest(this.url, this.method);
+    String processedUrl = HttpRequest.encode(HttpRequest.append(this.url, JsonUtils.getObjectMap(this.params)));
+    HttpRequest request = new HttpRequest(processedUrl, this.method);
+
+    return request;
   }
 
-  protected void prepareRequest(HttpRequest request) throws JSONException, IOException {
+  protected void prepareRequest(HttpRequest request) throws JSONException {
     request.followRedirects(this.followRedirects);
     request.readTimeout(this.timeout);
     request.acceptCharset("UTF-8");
     request.uncompress(true);
     request.setConnectionFactory(new OkConnectionFactory());
 
-    if (this.tlsConfiguration.getHostnameVerifier() != null) {
-      request.setHostnameVerifier(this.tlsConfiguration.getHostnameVerifier());
+    if (this.customHostnameVerifier != null) {
+      request.setHostnameVerifier(this.customHostnameVerifier);
     }
 
-    request.setSSLSocketFactory(this.tlsConfiguration.getTLSSocketFactory());
+    if (this.customSSLSocketFactory != null) {
+      request.setSSLSocketFactory(this.customSSLSocketFactory);
+    }
 
     // setup content type before applying headers, so user can override it
     this.setContentType(request);
@@ -131,12 +143,16 @@ abstract class CordovaHttpBase implements Runnable {
   }
 
   protected void setContentType(HttpRequest request) {
-    if ("json".equals(this.serializer)) {
+    switch (this.serializer) {
+    case "json":
       request.contentType("application/json", "UTF-8");
-    } else if ("utf8".equals(this.serializer)) {
+      break;
+    case "utf8":
       request.contentType("text/plain", "UTF-8");
-    } else if ("urlencoded".equals(this.serializer)) {
+      break;
+    case "urlencoded":
       // intentionally left blank, because content type is set in HttpRequest.form()
+      break;
     }
   }
 
@@ -145,12 +161,16 @@ abstract class CordovaHttpBase implements Runnable {
       return;
     }
 
-    if ("json".equals(this.serializer)) {
+    switch (this.serializer) {
+    case "json":
       request.send(this.data.toString());
-    } else if ("utf8".equals(this.serializer)) {
+      break;
+    case "utf8":
       request.send(((JSONObject) this.data).getString("text"));
-    } else if ("urlencoded".equals(this.serializer)) {
+      break;
+    case "urlencoded":
       request.form(JsonUtils.getObjectMap((JSONObject) this.data));
+      break;
     }
   }
 
