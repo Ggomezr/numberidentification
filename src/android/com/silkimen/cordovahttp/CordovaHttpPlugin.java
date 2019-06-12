@@ -102,22 +102,6 @@ public class CordovaHttpPlugin extends CordovaPlugin {
     return true;
   }
 
-  private boolean executeHttpRequestWithParams(final String method, final JSONArray args,
-      final CallbackContext callbackContext) throws JSONException {
-
-    String url = args.getString(0);
-    JSONObject params = args.getJSONObject(1);
-    JSONObject headers = args.getJSONObject(2);
-    int timeout = args.getInt(3) * 1000;
-
-    CordovaHttpOperation request = new CordovaHttpOperation(method.toUpperCase(), url, params, headers, timeout,
-        this.followRedirects, this.customSSLSocketFactory, this.customHostnameVerifier, callbackContext);
-
-    cordova.getThreadPool().execute(request);
-
-    return true;
-  }
-
   private boolean executeHttpRequestWithData(final String method, final JSONArray args,
       final CallbackContext callbackContext) throws JSONException {
 
@@ -163,6 +147,13 @@ public class CordovaHttpPlugin extends CordovaPlugin {
 
     cordova.getThreadPool().execute(download);
 
+    return true;
+  }
+  
+  private boolean setServerTrustMode(final JSONArray args, final CallbackContext callbackContext) throws JSONException {
+    CordovaServerTrust runnable = new CordovaServerTrust(args.getString(0), this.cordova.getActivity(),
+        this.tlsConfiguration, callbackContext);
+    cordova.getThreadPool().execute(runnable);
     return true;
   }
 
