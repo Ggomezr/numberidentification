@@ -64,30 +64,42 @@ public class CordovaHttpPlugin extends CordovaPlugin {
       return false;
     }
 
-    switch (action) {
-    case "get":
-      return this.executeHttpRequestWithParams(action, args, callbackContext);
-    case "post":
+    if ("get".equals(action)) {
+      return this.executeHttpRequestWithoutData(action, args, callbackContext);
+    } else if ("head".equals(action)) {
+      return this.executeHttpRequestWithoutData(action, args, callbackContext);
+    } else if ("delete".equals(action)) {
+      return this.executeHttpRequestWithoutData(action, args, callbackContext);
+    } else if ("post".equals(action)) {
       return this.executeHttpRequestWithData(action, args, callbackContext);
-    case "put":
+    } else if ("put".equals(action)) {
       return this.executeHttpRequestWithData(action, args, callbackContext);
-    case "patch":
+    } else if ("patch".equals(action)) {
       return this.executeHttpRequestWithData(action, args, callbackContext);
-    case "head":
-      return this.executeHttpRequestWithParams(action, args, callbackContext);
-    case "delete":
-      return this.executeHttpRequestWithParams(action, args, callbackContext);
-    case "uploadFile":
+    } else if ("uploadFile".equals(action)) {
       return this.uploadFile(args, callbackContext);
-    case "downloadFile":
+    } else if ("downloadFile".equals(action)) {
       return this.downloadFile(args, callbackContext);
-    case "setSSLCertMode":
-      return this.setSSLCertMode(args, callbackContext);
-    case "disableRedirect":
+    } else if ("setServerTrustMode".equals(action)) {
+      return this.setServerTrustMode(args, callbackContext);
+    } else if ("setClientAuthMode".equals(action)) {
+      return this.setClientAuthMode(args, callbackContext);
+    } else if ("disableRedirect".equals(action)) {
       return this.disableRedirect(args, callbackContext);
-    default:
+    } else {
       return false;
     }
+  }
+  
+  private boolean executeHttpRequestWithoutData(final String method, final JSONArray args,
+      final CallbackContext callbackContext) throws JSONException {
+    String url = args.getString(0);
+    JSONObject headers = args.getJSONObject(1);
+    int timeout = args.getInt(2) * 1000;
+    CordovaHttpOperation request = new CordovaHttpOperation(method.toUpperCase(), url, headers, timeout,
+        this.followRedirects, this.tlsConfiguration, callbackContext);
+    cordova.getThreadPool().execute(request);
+    return true;
   }
 
   private boolean executeHttpRequestWithParams(final String method, final JSONArray args,
@@ -116,7 +128,7 @@ public class CordovaHttpPlugin extends CordovaPlugin {
     int timeout = args.getInt(4) * 1000;
 
     CordovaHttpOperation request = new CordovaHttpOperation(method.toUpperCase(), url, serializer, data, headers,
-        timeout, this.followRedirects, this.customSSLSocketFactory, this.customHostnameVerifier, callbackContext);
+        timeout, this.followRedirects, this.tlsConfiguration, callbackContext);
 
     cordova.getThreadPool().execute(request);
 
