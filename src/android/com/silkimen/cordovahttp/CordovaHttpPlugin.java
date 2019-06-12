@@ -64,27 +64,28 @@ public class CordovaHttpPlugin extends CordovaPlugin {
       return false;
     }
 
-    if ("get".equals(action)) {
+    switch (action) {
+    case "get":
       return this.executeHttpRequestWithParams(action, args, callbackContext);
-    } else if ("head".equals(action)) {
+    case "post":
+      return this.executeHttpRequestWithData(action, args, callbackContext);
+    case "put":
+      return this.executeHttpRequestWithData(action, args, callbackContext);
+    case "patch":
+      return this.executeHttpRequestWithData(action, args, callbackContext);
+    case "head":
       return this.executeHttpRequestWithParams(action, args, callbackContext);
-    } else if ("delete".equals(action)) {
+    case "delete":
       return this.executeHttpRequestWithParams(action, args, callbackContext);
-    } else if ("post".equals(action)) {
-      return this.executeHttpRequestWithData(action, args, callbackContext);
-    } else if ("put".equals(action)) {
-      return this.executeHttpRequestWithData(action, args, callbackContext);
-    } else if ("patch".equals(action)) {
-      return this.executeHttpRequestWithData(action, args, callbackContext);
-    } else if ("uploadFile".equals(action)) {
+    case "uploadFile":
       return this.uploadFile(args, callbackContext);
-    } else if ("downloadFile".equals(action)) {
+    case "downloadFile":
       return this.downloadFile(args, callbackContext);
-    } else if ("setSSLCertMode".equals(action)) {
+    case "setSSLCertMode":
       return this.setSSLCertMode(args, callbackContext);
-    } else if ("disableRedirect".equals(action)) {
+    case "disableRedirect":
       return this.disableRedirect(args, callbackContext);
-    } else {
+    default:
       return false;
     }
   }
@@ -155,21 +156,27 @@ public class CordovaHttpPlugin extends CordovaPlugin {
 
   private boolean setSSLCertMode(final JSONArray args, final CallbackContext callbackContext) {
     try {
-      if ("legacy".equals(args.getString(0))) {
+      switch (args.getString(0)) {
+      case "legacy":
         this.customHostnameVerifier = null;
         this.customSSLSocketFactory = null;
-      } else if ("nocheck".equals(args.getString(0))) {
+        break;
+      case "nocheck":
         this.customHostnameVerifier = this.hostnameVerifierFactory.getNoOpVerifier();
         this.customSSLSocketFactory = this.createSocketFactory(this.trustManagersFactory.getNoopTrustManagers());
-      } else if ("pinned".equals(args.getString(0))) {
+        break;
+      case "pinned":
         this.customHostnameVerifier = null;
         this.customSSLSocketFactory = this.createSocketFactory(
-        this.trustManagersFactory.getPinnedTrustManagers(this.getCertsFromBundle("www/certificates")));
-      } else {
+            this.trustManagersFactory.getPinnedTrustManagers(this.getCertsFromBundle("www/certificates")));
+        break;
+      default:
         this.customHostnameVerifier = null;
         this.customSSLSocketFactory = this.createSocketFactory(
-        this.trustManagersFactory.getPinnedTrustManagers(this.getCertsFromKeyStore("AndroidCAStore")));
+            this.trustManagersFactory.getPinnedTrustManagers(this.getCertsFromKeyStore("AndroidCAStore")));
+        break;
       }
+
       callbackContext.success();
     } catch (Exception e) {
       Log.e(TAG, "An error occured while configuring SSL cert mode", e);
