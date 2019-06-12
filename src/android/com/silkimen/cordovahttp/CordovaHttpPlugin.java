@@ -80,8 +80,6 @@ public class CordovaHttpPlugin extends CordovaPlugin {
       return this.uploadFile(args, callbackContext);
     } else if ("downloadFile".equals(action)) {
       return this.downloadFile(args, callbackContext);
-    } else if ("setServerTrustMode".equals(action)) {
-      return this.setServerTrustMode(args, callbackContext);
     } else if ("disableRedirect".equals(action)) {
       return this.disableRedirect(args, callbackContext);
     } else {
@@ -150,13 +148,6 @@ public class CordovaHttpPlugin extends CordovaPlugin {
 
     cordova.getThreadPool().execute(download);
 
-    return true;
-  }
-  
-  private boolean setServerTrustMode(final JSONArray args, final CallbackContext callbackContext) throws JSONException {
-    CordovaServerTrust runnable = new CordovaServerTrust(args.getString(0), this.cordova.getActivity(),
-        this.tlsConfiguration, callbackContext);
-    cordova.getThreadPool().execute(runnable);
     return true;
   }
 
