@@ -110,7 +110,7 @@ public class CordovaHttpPlugin extends CordovaPlugin {
     int timeout = args.getInt(4) * 1000;
 
     CordovaHttpOperation request = new CordovaHttpOperation(method.toUpperCase(), url, serializer, data, headers,
-        timeout, this.followRedirects, this.tlsConfiguration, callbackContext);
+        timeout, this.followRedirects, this.customSSLSocketFactory, this.customHostnameVerifier, callbackContext);
 
     cordova.getThreadPool().execute(request);
 
