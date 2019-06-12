@@ -65,11 +65,11 @@ public class CordovaHttpPlugin extends CordovaPlugin {
     }
 
     if ("get".equals(action)) {
-      return this.executeHttpRequestWithoutData(action, args, callbackContext);
+      return this.executeHttpRequestWithParams(action, args, callbackContext);
     } else if ("head".equals(action)) {
-      return this.executeHttpRequestWithoutData(action, args, callbackContext);
+      return this.executeHttpRequestWithParams(action, args, callbackContext);
     } else if ("delete".equals(action)) {
-      return this.executeHttpRequestWithoutData(action, args, callbackContext);
+      return this.executeHttpRequestWithParams(action, args, callbackContext);
     } else if ("post".equals(action)) {
       return this.executeHttpRequestWithData(action, args, callbackContext);
     } else if ("put".equals(action)) {
@@ -89,14 +89,19 @@ public class CordovaHttpPlugin extends CordovaPlugin {
     }
   }
   
-  private boolean executeHttpRequestWithoutData(final String method, final JSONArray args,
+ private boolean executeHttpRequestWithParams(final String method, final JSONArray args,
       final CallbackContext callbackContext) throws JSONException {
+
     String url = args.getString(0);
-    JSONObject headers = args.getJSONObject(1);
-    int timeout = args.getInt(2) * 1000;
-    CordovaHttpOperation request = new CordovaHttpOperation(method.toUpperCase(), url, headers, timeout,
-        this.followRedirects, this.tlsConfiguration, callbackContext);
+    JSONObject params = args.getJSONObject(1);
+    JSONObject headers = args.getJSONObject(2);
+    int timeout = args.getInt(3) * 1000;
+
+    CordovaHttpOperation request = new CordovaHttpOperation(method.toUpperCase(), url, params, headers, timeout,
+        this.followRedirects, this.customSSLSocketFactory, this.customHostnameVerifier, callbackContext);
+
     cordova.getThreadPool().execute(request);
+
     return true;
   }
 
